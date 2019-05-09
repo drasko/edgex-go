@@ -33,10 +33,10 @@ File = './logs/edgex-support-notifications.log'
   Host = 'localhost'
   Name = 'notifications'
   Password = ''
-  Port = 27017
+  Port = 6379
   Username = ''
   Timeout = 5000
-  Type = 'mongodb'
+  Type = 'redisdb'
 
 [Smtp]
 Host = 'smtp.gmail.com'

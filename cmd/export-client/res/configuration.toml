@@ -37,8 +37,8 @@ File = './logs/edgex-export-client.log'
   Host = 'localhost'
   Name = 'exportclient'
   Password = ''
-  Port = 27017
+  Port = 6379
   Username = ''
   Timeout = 5000
-  Type = 'mongodb'
+  Type = 'redisdb'
 

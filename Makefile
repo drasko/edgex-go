@@ -14,12 +14,12 @@ BUILD_DIR := build
 ###
 # For ARM cross-compilation add something like:
 #
-# CC = arm-linux-gnueabi-gcc
-# CGO_LDFLAGS = -L/<path_to_libzmq>/src/.libs
-# CGO_CFLAGS = -I/<path_to_libzmq>/include
-# GOOS = linux
-# GOARCH = arm
-# GOARM = 7
+CC = arm-linux-gnueabihf-gcc
+CGO_LDFLAGS = -L/home/drasko/edgex/libzmq-4.3.1/src/.libs
+CGO_CFLAGS = -I/home/drasko/edgex/libzmq-4.3.1/include
+GOOS = linux
+GOARCH = arm
+GOARM = 7
 ###
 FLAGS = GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} GO111MODULE=on
 GO_FLAGS =  $(FLAGS) CGO_ENABLED=0 
