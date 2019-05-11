@@ -21,7 +21,7 @@ BUILD_DIR := build
 #GOARCH = arm
 #GOARM = 7
 ###
-FLAGS = GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} GO111MODULE=on
+FLAGS = GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} GO111MODULE=off
 GO_FLAGS =  $(FLAGS) CGO_ENABLED=0 
 CGO_FLAGS =  $(FLAGS) CC=${CC} CGO_LDFLAGS=${CGO_LDFLAGS} CGO_CFLAGS=${CGO_CFLAGS} CGO_ENABLED=1
 
@@ -67,6 +67,9 @@ test:
 	GO111MODULE=on go vet ./...
 	gofmt -l .
 	[ "`gofmt -l .`" = "" ]
+
+prepare:
+	glide install
 
 run:
 	cd scripts && ./run.sh
