@@ -1,0 +1,48 @@
+FROM golang:1.12.5-stretch AS builder
+ARG SVC_NAME
+
+WORKDIR /go/src/github.com/edgexfoundry/edgex-go
+COPY . .
+RUN apt update \
+  && apt install -y make qemu-user-static\
+  && mkdir /tmp/libzmq \
+  && if [ "$SVC_NAME" = "core-data" ] || [ "$SVC_NAME" = "export-distro" ]; then \
+    apt install -y libtool pkg-config build-essential autoconf automake uuid-dev; \
+    wget https://developer.arm.com/-/media/Files/downloads/gnu-a/8.3-2019.03/binrel/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf.tar.xz; \
+    tar -xf gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf.tar.xz; \
+    export PATH=$PATH:`pwd`/gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf/bin; \
+    wget https://github.com/zeromq/libzmq/archive/v4.3.1.tar.gz; \
+    tar -xzf v4.3.1.tar.gz; \
+    mv libzmq-4.3.1/* /tmp/libzmq; \
+    cd /tmp/libzmq; \
+    ./autogen.sh; \
+    ./configure --host=arm-linux-gnueabihf CC=arm-linux-gnueabihf-gcc CXX=arm-linux-gnueabihf-g++; \
+    make -j 16; \
+    cd -; \
+    CC=arm-linux-gnueabihf-gcc \
+    CGO_LDFLAGS=-L/tmp/libzmq/src/.libs \
+    CGO_CFLAGS=-I/tmp/libzmq/include \
+    GOARCH=arm \
+    GOARM=7 \
+    PKG_CONFIG_PATH=/tmp/libzmq/src \
+    make $SVC_NAME; \
+  else \
+    GOARCH=arm \
+    GOARM=7 \
+    make $SVC_NAME; \
+  fi \
+  && cp -r cmd/$SVC_NAME /edgex \
+  && mv /edgex/$SVC_NAME /edgex/exe \
+  && echo "$SVC_NAME" > /svc_name 
+
+FROM arm32v7/debian:stretch-slim
+COPY --from=builder /usr/bin/qemu-arm-static /usr/bin/qemu-arm-static
+COPY --from=builder /edgex /edgex
+COPY --from=builder /svc_name /svc_name
+RUN SVC_NAME=`cat /svc_name` \
+  && if [ "$SVC_NAME" = "core-data" ] || [ "$SVC_NAME" = "export-distro" ]; then \
+    apt update && apt install -y libzmq5; \
+  fi \
+  && rm -rf /usr/bin/qemu-arm-static
+
+ENTRYPOINT ["/edgex/exe", "--registry", "--profile=docker", "--confdir=/edgex/res"]

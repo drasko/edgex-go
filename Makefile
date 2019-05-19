@@ -62,7 +62,7 @@ define make_docker_arm
 		--build-arg SVC_NAME=$(subst docker_arm_,,$(1)) \
 		-t edgex/$(subst docker_arm_,,$(1)):$(GIT_SHA) \
 		-t edgex/$(subst docker_arm_,,$(1)):$(VERSION)-dev \
-		-f docker/Dockerfile.arm \
+		-f docker/Dockerfile \
 		.
 endef
 
