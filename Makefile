@@ -14,12 +14,13 @@ BUILD_DIR := build
 ###
 # For ARM cross-compilation add something like:
 #
-CC = arm-linux-gnueabihf-gcc
-CGO_LDFLAGS = -L/home/drasko/edgex/libzmq-4.3.1/src/.libs
-CGO_CFLAGS = -I/home/drasko/edgex/libzmq-4.3.1/include
-GOOS = linux
-GOARCH = arm
-GOARM = 7
+#CC = arm-linux-gnueabihf-gcc
+#CGO_LDFLAGS = -L/home/drasko/edgex/libzmq-4.3.1/src/.libs
+#CGO_CFLAGS = -I/home/drasko/edgex/libzmq-4.3.1/include
+#PKG_CONFIG_PATH =  /home/drasko/edgex/libzmq-4.3.1/src
+#GOOS = linux
+#GOARCH = arm
+#GOARM = 7
 ###
 FLAGS = GOOS=${GOOS} GOARCH=${GOARCH} GOARM=${GOARM} GO111MODULE=on
 GO_FLAGS =  $(FLAGS) CGO_ENABLED=0 
@@ -29,6 +30,7 @@ SERVICES_GO := config-seed export-client core-metadata core-command support-logg
 SERVICES_CGO := core-data export-distro
 SERVICES := $(SERVICES_GO) $(SERVICES_CGO)
 DOCKERS = $(addprefix docker_,$(SERVICES))
+DOCKERS_ARM = $(addprefix docker_arm_,$(SERVICES))
 
 .PHONY: $(SERVICES) $(DOCKERS) build clean test docker run
 
@@ -44,11 +46,23 @@ endef
 
 define make_docker
 	docker build \
+		--no-cache \
 		--label "git_sha=$(GIT_SHA)" \
 		--build-arg SVC_NAME=$(subst docker_,,$(1)) \
 		-t edgex/$(subst docker_,,$(1)):$(GIT_SHA) \
 		-t edgex/$(subst docker_,,$(1)):$(VERSION)-dev \
 		-f cmd/$(subst docker_,,$(1))/Dockerfile \
+		.
+endef
+
+define make_docker_arm
+	docker build \
+		--no-cache \
+		--label "git_sha=$(GIT_SHA)" \
+		--build-arg SVC_NAME=$(subst docker_arm_,,$(1)) \
+		-t edgex/$(subst docker_arm_,,$(1)):$(GIT_SHA) \
+		-t edgex/$(subst docker_arm_,,$(1)):$(VERSION)-dev \
+		-f docker/Dockerfile.arm \
 		.
 endef
 
@@ -79,3 +93,8 @@ $(DOCKERS):
 	$(call make_docker,$(@))
 
 dockers: $(DOCKERS)
+
+$(DOCKERS_ARM):
+	$(call make_docker_arm,$(@))
+
+dockers_arm: $(DOCKERS_ARM)
